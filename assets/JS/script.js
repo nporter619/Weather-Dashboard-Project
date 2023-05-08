@@ -36,7 +36,7 @@ async function fetchCoordinates(city) {
     
     // Display current weather conditions
     function displayCurrentWeather(currentWeatherData) {
-        const currentWeatherDiv = document.getElementById('current-weather');
+        const currentWeatherDiv = document.getElementById('weather-data');
         // Format and display data
         currentWeatherDiv.innerHTML = `
             <h2>${currentWeatherData.name} (${new Date(currentWeatherData.dt * 1000).toLocaleDateString()})</h2>
@@ -49,7 +49,7 @@ async function fetchCoordinates(city) {
   
     // Display 5-day forecast
     function displayWeatherForecast(forecastData) {
-        const forecastDiv = document.getElementById('forecast');
+        const forecastDiv = document.getElementById('forecast-data');
         // Format and display data
         forecastDiv.innerHTML = '';
 
@@ -69,11 +69,35 @@ async function fetchCoordinates(city) {
   
   
   // Function to save city to search history in localStorage
-  function saveCityToSearchHistory(city) {
+    function saveCityToSearchHistory(city) {
     // Save city to localStorage
+        const searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
+            searchHistory.push(city);
+            localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
   
     // Update search history display
+        updateSearchHistoryDisplay(searchHistory);
   }
+  
+  function updateSearchHistoryDisplay(searchHistory) {
+    const searchHistoryDiv = document.getElementById("history-list");
+    searchHistoryDiv.innerHTML = '';
+  
+    searchHistory.forEach((city) => {
+      const cityButton = document.createElement('button');
+      cityButton.textContent = city;
+      cityButton.classList.add('search-history-button');
+      cityButton.addEventListener('click', async () => {
+        const { lat, lon } = await fetchCoordinates(city);
+        const weatherData = await fetchWeatherForecast(lat, lon);
+        displayWeatherConditions(weatherData);
+      });
+  
+      searchHistoryDiv.appendChild(cityButton);
+    });
+  }
+  
+  
   
   // Event listener for form submission
   document.querySelector('#search-form').addEventListener('submit', async (event) => {
@@ -93,4 +117,8 @@ async function fetchCoordinates(city) {
   });
   
   // Optional: Load search history from localStorage on page load
+    document.addEventListener('DOMContentLoaded', () => {
+    const searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
+    updateSearchHistoryDisplay(searchHistory);
+  });
   
