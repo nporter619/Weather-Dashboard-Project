@@ -1,16 +1,25 @@
-// Function to fetch coordinates based on city name
+/**
+ * Function to fetch coordinates based on city name
+ * 
+ * @param String - city to seach
+ * @returns JSON - The current weather information and coordinated required to get the forecast
+ */
 async function fetchCoordinates(city) {
-  const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${config.openWeatherApiKey}`);
+  const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${config.openWeatherApiKey}&units=imperial`);
   const data = await response.json();
 
   console.log('Coordinates data:', data); // Log the coordinates data
 
-  return {
-      lat: data.coord.lat,
-      lon: data.coord.lon
-  };
+  return data;
 }
-// Function to fetch the 5-day weather forecast based on coordinates
+
+/**
+* Function to fetch the 5-day weather forecast based on coordinates
+* 
+* @param Long lat 
+* @param Long lon 
+* @returns Array - The filtered weather forcast
+*/
 async function fetchWeatherForecast(lat, lon) {
   // Use units=imperial for Fahrenheit
   const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${config.openWeatherApiKey}&units=imperial`);
@@ -26,17 +35,25 @@ async function fetchWeatherForecast(lat, lon) {
   return filteredData;
 }
 
-// Function to display current and future weather conditions
+/**
+* Function to display current and future weather conditions
+* 
+* @param Array weatherData - Contains an array of weather data. The first item is the current weather
+*/
 function displayWeatherConditions(weatherData) {
   const currentWeatherData = weatherData[0]; // Assuming the first element contains current weather
 
-  const forecastData = weatherData;//weatherData.slice(1); // Assuming the rest of the elements are the 5-day forecast
+  const forecastData = weatherData.slice(1); // Assuming the rest of the elements are the 5-day forecast
 
   displayCurrentWeather(currentWeatherData);
   displayWeatherForecast(forecastData);
 }
 
-// Display current weather conditions
+/**
+* Display current weather conditions
+* 
+* @param JSON currentWeatherData - Contains the current weather conditions
+*/
 function displayCurrentWeather(currentWeatherData) {
   const city = getCity();
   const currentWeatherDiv = document.getElementById('weather-data');
@@ -50,7 +67,11 @@ function displayCurrentWeather(currentWeatherData) {
           `;
 }
 
-// Display 5-day forecast
+/**
+* Display 5-day forecast
+* 
+* @param Array forecastData - Contains forecasted weather
+*/
 function displayWeatherForecast(forecastData) {
   const forecastDiv = document.getElementById('forecast-data');
   // Format and display data
@@ -71,8 +92,12 @@ function displayWeatherForecast(forecastData) {
   });
 }
 
-
-// Function to save city to search history in localStorage
+/**
+* Function to save city to search history in localStorage
+* 
+* @param String city - The city to store in local storage
+* @returns Array - cities that were searched
+*/
 function saveCityToSearchHistory(city) {
   // Save city to localStorage
   const searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
@@ -89,6 +114,10 @@ function saveCityToSearchHistory(city) {
   updateSearchHistoryDisplay(searchHistory);
 }
 
+/**
+* 
+* @param Array searchHistory - Array of cities that were searched
+*/
 function updateSearchHistoryDisplay(searchHistory) {
   const searchHistoryDiv = document.getElementById("history-list");
   searchHistoryDiv.innerHTML = '';
@@ -98,8 +127,13 @@ function updateSearchHistoryDisplay(searchHistory) {
       cityButton.textContent = city;
       cityButton.classList.add('search-history-button');
       cityButton.addEventListener('click', async () => {
-          const { lat, lon } = await fetchCoordinates(city);
-          const weatherData = await fetchWeatherForecast(lat, lon);
+          // coordinates will also contain the current weather
+          const coordinates = await fetchCoordinates(city);
+          const weatherData = await fetchWeatherForecast(coordinates.coord.lat, coordinates.coord.lon);
+
+          // Add the current weather to the front of the weather data
+          weatherData.unshift(coordinates);
+
           displayWeatherConditions(weatherData);
       });
 
@@ -107,21 +141,29 @@ function updateSearchHistoryDisplay(searchHistory) {
   });
 }
 
+/**
+* 
+* @returns String - The value in the city search field
+*/
 function getCity() {
   return document.querySelector('#city-input').value;
 }
 
-
-// Event listener for form submission
+/**
+* Event listener for form submission
+*/
 document.querySelector('#search-form').addEventListener('submit', async (event) => {
   event.preventDefault();
 
   const city = getCity();
 
-
   if (city) {
-      const { lat, lon } = await fetchCoordinates(city);
-      const weatherData = await fetchWeatherForecast(lat, lon);
+      // coordinates will also contain the current weather
+      const coordinates = await fetchCoordinates(city);
+      const weatherData = await fetchWeatherForecast(coordinates.coord.lat, coordinates.coord.lon);
+
+      // Add the current weather to the front of the weather data
+      weatherData.unshift(coordinates);
 
       displayWeatherConditions(weatherData);
       saveCityToSearchHistory(city);
@@ -130,7 +172,9 @@ document.querySelector('#search-form').addEventListener('submit', async (event) 
   }
 });
 
-// Optional: Load search history from localStorage on page load
+/**
+* Optional: Load search history from localStorage on page load
+*/
 document.addEventListener('DOMContentLoaded', () => {
   const searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
   updateSearchHistoryDisplay(searchHistory);
