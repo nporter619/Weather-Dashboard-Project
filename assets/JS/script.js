@@ -16,8 +16,8 @@ async function fetchCoordinates(city) {
 /**
 * Function to fetch the 5-day weather forecast based on coordinates
 * 
-* @param Long lat 
-* @param Long lon 
+* @param Decimals lat 
+* @param Decimals lon 
 * @returns Array - The filtered weather forcast
 */
 async function fetchWeatherForecast(lat, lon) {
