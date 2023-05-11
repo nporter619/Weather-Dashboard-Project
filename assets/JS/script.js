@@ -8,7 +8,6 @@ async function fetchCoordinates(city) {
   const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${config.openWeatherApiKey}&units=imperial`);
   const data = await response.json();
 
-  console.log('Coordinates data:', data); // Log the coordinates data
 
   return data;
 }
@@ -30,7 +29,6 @@ async function fetchWeatherForecast(lat, lon) {
       const entryHour = new Date(entry.dt * 1000).getUTCHours();
       return entryHour === 12; // Keep only entries with a timestamp of 12:00 PM (noon)
   });
-  console.log('Weather forecast data:', filteredData);// Log the weather forecast data
 
   return filteredData;
 }
